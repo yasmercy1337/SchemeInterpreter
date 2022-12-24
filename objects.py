@@ -1,16 +1,28 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import *
 import scheme_builtins
+from scheme_builtins import evaluate_args
 
 
 class Scope:
     def __init__(self):
         self.functions: dict[str, Callable] = {}
         self.variables: dict[str, Any] = {}
-        self.child_scopes: list[Scope] = []
         set_builtins(self)
-      
-        
+
+    def add_function(self, name: str, func: Callable):
+        self.functions[name] = func
+
+    def __repr__(self):
+        return f"Functions: {dict_subtract(self.functions, scheme_builtins.functions).keys()} " \
+               f"Variables: {dict_subtract(self.variables, scheme_builtins.variables).keys()}"
+
+def dict_subtract(dict1: dict, dict2: dict) -> dict:
+    keys = dict2.keys()
+    return {key: value for (key, value) in dict1.items() if key not in keys}
+
 def set_builtins(scope: Scope) -> None:
     scope.functions.update(scheme_builtins.functions)
     scope.variables.update(scheme_builtins.variables)
@@ -22,7 +34,7 @@ class Function:
     parameters: list[str]
     body: str
     scope: Scope = field(default_factory=Scope)
-    
+
     def __call__(self, *args) -> Any:
         code = self.body  # copy
         for parameter, arg in zip(self.parameters, args):
@@ -33,13 +45,15 @@ class Function:
 @dataclass
 class Expression:
     code: str
+    scope: Scope = field(default_factory=Scope)
     
     def __call__(self, scope: Scope = None) -> Any:
         if not self.code:
             return
         
         if not scope:
-            scope = Scope()
+            scope = self.scope
+        self.scope = scope
         
         code = parse_whitespace(self.code)
         # single variable
@@ -48,14 +62,14 @@ class Expression:
         
         # function
         code = code[1:-1] # removing parens
-        args = replace_with_expressions(code)
-        function = scope.functions[args.pop(0).code] # can raise key error
+        args = replace_with_expressions(code, self.scope)
+        function = scope.functions[args.pop(0).code]  # can raise key error
         # print(function, *args, sep="\n")
         # print()
         return function(*args)
     
     def __repr__(self) -> str:
-        return f"Expression(code={self.code})"
+        return f"(Expression(code={self.code}))"
     
 @dataclass
 class Module:
@@ -76,7 +90,8 @@ class Module:
                 name = signature.pop(0)
                 parameters = signature
                 function = Function(name, parameters, body.code)
-                self.scope.functions[function.name] = function
+                function.scope.add_function(name, evaluate_args(function))
+                self.scope.add_function(name, evaluate_args(function))
             else:
                 expressions.append(expression)        
         output = [str(expression(self.scope)) for expression in expressions]
@@ -88,6 +103,11 @@ def is_function(code: str) -> bool:
      
 def parse_word(code: str) -> Any:
     """ Takes in an 'word' and parses it to a correct type"""
+
+    # expression
+    if "Expression" in code:
+        code = code[17:-2]
+        return Expression(code)()
 
     # string
     if code[0] == '"' and code[-1] == '"':
@@ -125,7 +145,10 @@ def remove_consecutive_whitespace(string: str) -> str:
     return out
 
     
-def replace_with_expressions(code: str) -> list[Expression]:    
+def replace_with_expressions(code: str, scope: Scope = None) -> list[Expression]:
+    if scope is None:
+        scope = Scope()
+
     out = []
     count = 0
     current = ""
@@ -137,11 +160,11 @@ def replace_with_expressions(code: str) -> list[Expression]:
             count -= 1
         
         if char == " " and count == 0:
-            out.append(Expression(current))
+            out.append(Expression(current, scope))
             current = ""
             continue
         current += char
 
     if current:
-        out.append(Expression(current))
+        out.append(Expression(current, scope))
     return out 

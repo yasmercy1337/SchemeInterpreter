@@ -29,21 +29,21 @@ def function_test():
     assert interpret_module(code) == "3\n5"
 
 def fibonacci_test():
-    code = "(define (fib n)\n\t(if (<= n 2)\n\t\t1\n\t\t(+ (fib (- n 1)) (fib (- n 2)))))\n(fib 6)"
-    assert interpret_expression(code) == 8
+    code = "(define (fib n)\n\t(if (<= n 2)\n\t\t1\n\t\t(+ (fib (- n 1)) (fib (- n 2)))))\n(fib 6)\n(fib 20)"
+    assert interpret_module(code) == "8\n6765"
     
 
 def run_all_tests():
     print('Running tests...')
     
-    # add_test()
-    # division_test()
-    # nested_arithmetic_test()
-    # deeply_nested_arithmetic_test()
+    add_test()
+    division_test()
+    nested_arithmetic_test()
+    deeply_nested_arithmetic_test()
     if_negative_test()
     if_positive_test()
-    # function_test()
-    # fibonacci_test()
+    function_test()
+    fibonacci_test()
     
     print("Passed tests! :)")
 

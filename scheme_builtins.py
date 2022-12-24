@@ -4,24 +4,25 @@ import operator
 def evaluate_args(func: Callable) -> Callable:
     return lambda *args: func(*[arg() for arg in args])
 
-def if_(cond: Callable[[Any], bool], arg1: Any, arg2: Any) -> Any:
-    print(cond)
+def if_(cond: Callable[[], bool], arg1: Any, arg2: Any) -> Any:
     if cond():
         return arg1()
     return arg2()
 
 def define_(signature: str, body):
     from objects import Function
-    
+
     signature = signature[1:-1].split(" ")
     name = signature.pop(0)
     parameters = signature
-    
-    return Function(
+
+    function = Function(
         name,
         parameters,
         body
     )
+    function.scope.add_function(name, evaluate_args(function))
+    return function
 
 functions = {
     "+": evaluate_args(operator.add),
