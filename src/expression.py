@@ -8,21 +8,24 @@ class Expression:
     def __init__(self, code: str, scope: Scope = None):
         self.code: str = code
         self.scope: Scope = scope
-        self.operator: Callable
-        self.arguments: list[Expression]
-        self.value: Any = None
         self.parsed: bool = False
+        
+        self.operator: Callable = None
+        self.arguments: list[Expression] = None
+        self.value: Any = None
     
     def parse(self) -> Self:
         expressions = group_blocks(strip_parens(parse_whitespace(self.code)))
+        self.parsed = True
+        
         if len(expressions) == 1:
             self.value = parse_word(expressions[0])
-        else:
-            self.operator = self.scope.get_function(operator := expressions.pop(0))
-            self.arguments = [Expression(arg, self.scope) for arg in expressions]
-            if not self.operator:
-                raise NameError(f"'{operator}' is not defined")
-        self.parsed = True
+            return self
+        
+        self.operator = self.scope.get_function(operator := expressions.pop(0))
+        self.arguments = [Expression(arg, self.scope) for arg in expressions]
+        if not self.operator:
+            raise NameError(f"'{operator}' is not defined")
         return self
             
     def __call__(self) -> Any:
@@ -36,4 +39,6 @@ class Expression:
     def __repr__(self) -> str:
         if self.value is not None:
             return f"value='{self.value}'"
-        return f"operator='{self.operator}' args={self.arguments}"
+        if self.operator is not None and self.arguments is not None:
+            return f"operator='{self.operator}' args={self.arguments}"
+        return self.code
