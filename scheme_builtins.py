@@ -4,7 +4,7 @@ import operator
 def evaluate_args(func: Callable) -> Callable:
     return lambda *args: func(*[arg() for arg in args])
 
-def if_(cond: Callable[[], bool], arg1: Any, arg2: Any) -> Any:
+def if_(cond: Callable[[], bool], arg1: Callable, arg2: Callable) -> Any:
     if cond():
         return arg1()
     return arg2()
@@ -21,7 +21,6 @@ def define_(signature: str, body):
         parameters,
         body
     )
-    function.scope.add_function(name, evaluate_args(function))
     return function
 
 functions = {
@@ -41,10 +40,10 @@ functions = {
 
 """ 
 TODO:
-    - define
     - let 
     - lambda
     - list
+    - cond
     - https://groups.csail.mit.edu/mac/ftpdir/scheme-7.4/doc-html/scheme_2.html
 """
 

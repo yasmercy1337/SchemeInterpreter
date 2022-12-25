@@ -7,25 +7,44 @@ from scheme_builtins import evaluate_args
 
 
 class Scope:
-    def __init__(self):
+    def __init__(self, parent_scope: Scope = None):
         self.functions: dict[str, Callable] = {}
         self.variables: dict[str, Any] = {}
-        set_builtins(self)
+        
+        self.parent: Scope
+        if parent_scope is None:
+            self.parent = Scope.builtin()
+        else:
+            self.parent = None
 
     def add_function(self, name: str, func: Callable):
         self.functions[name] = func
+        
+    def get_function(self, func_name: str) -> Callable:
+        try:
+            return self.functions[func_name]
+        except KeyError:
+            if self.parent is None:
+                raise SyntaxError(f"Cannot find {func_name}")
+            return self.parent.get_function(func_name)
 
     def __repr__(self):
         return f"Functions: {dict_subtract(self.functions, scheme_builtins.functions).keys()} " \
                f"Variables: {dict_subtract(self.variables, scheme_builtins.variables).keys()}"
+    
+    def builtin() -> Self:
+        return set_builtins(Scope(False))
+
 
 def dict_subtract(dict1: dict, dict2: dict) -> dict:
     keys = dict2.keys()
     return {key: value for (key, value) in dict1.items() if key not in keys}
 
-def set_builtins(scope: Scope) -> None:
+
+def set_builtins(scope: Scope) -> Scope:
     scope.functions.update(scheme_builtins.functions)
     scope.variables.update(scheme_builtins.variables)
+    return scope
     
     
 @dataclass
@@ -63,9 +82,7 @@ class Expression:
         # function
         code = code[1:-1] # removing parens
         args = replace_with_expressions(code, self.scope)
-        function = scope.functions[args.pop(0).code]  # can raise key error
-        # print(function, *args, sep="\n")
-        # print()
+        function = scope.get_function(args.pop(0).code)  # can raise syntax error
         return function(*args)
     
     def __repr__(self) -> str:
@@ -90,7 +107,6 @@ class Module:
                 name = signature.pop(0)
                 parameters = signature
                 function = Function(name, parameters, body.code)
-                function.scope.add_function(name, evaluate_args(function))
                 self.scope.add_function(name, evaluate_args(function))
             else:
                 expressions.append(expression)        

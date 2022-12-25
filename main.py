@@ -2,6 +2,7 @@ from interpreter import *
 
 
 def main():
+    
     with open("code.txt", "r") as f:
         code = "".join(f.readlines())
         print(f"Interpreting: \n{code}\n")
