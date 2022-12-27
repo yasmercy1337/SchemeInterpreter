@@ -17,10 +17,13 @@ class Expression:
     def parse(self):
         code = parse_whitespace(self.code)
         self.parsed = True
-        if code[0] == "(" and code[-1] == ")": # function call
+        if is_function(code): # function call
             code = strip_parens(code)
             operator, *arguments = group_blocks(code)
-            self.operator = self.scope.get(operator)
+            if is_function(operator):
+                self.operator = Expression(operator, self.scope)()
+            else:
+                self.operator = self.scope.get(operator)
             if not self.operator:
                 raise NameError(f"'{operator}' is not defined")
             self.arguments = [Expression(arg, self.scope) for arg in arguments]
@@ -47,3 +50,6 @@ class Expression:
         if self.operator is not None and self.arguments is not None:
             return f"operator='{self.operator}' args={self.arguments}"
         return self.code
+
+def is_function(code: str) -> bool:
+    return code[0] == "(" and code[-1] == ")"

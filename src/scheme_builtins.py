@@ -26,7 +26,8 @@ def cond_(*conds: Expression) -> Any:
             results = [Expression(action, condition.scope)() for action in actions]
             return results[-1]
     raise ValueError
-    
+
+@evaluate_args    
 def display_(arg: Expression) -> None:
     print(arg())
 
@@ -76,6 +77,10 @@ def cdr_(arr: ConsList) -> Any:
 def null_(arr: ConsList) -> Any:
     return arr is None or (arr.head is None and arr.next is None)
 
+def lambda_(params: Expression, body: Expression) -> Function:
+    params = strip_parens(params.code).split(" ")
+    return Function("lambda", params, body.code, body.scope)
+
 operators: dict[str, Callable] = {
     # inconsistency: arithmetic operations can take in multiple in scheme
     "+": evaluate_args(operator.add),
@@ -91,12 +96,14 @@ operators: dict[str, Callable] = {
     "or": evaluate_args(operator.or_),
     "and": evaluate_args(operator.and_),
     "eq?": evaluate_args(operator.is_),
+    "display": display_,
     
+    # special form
     "if": if_,
     "define": define_,
     "cond": cond_,
-    "display": display_,
     "let": let_,
+    "lambda": lambda_,
     
     # list operations
     "list": list_,
