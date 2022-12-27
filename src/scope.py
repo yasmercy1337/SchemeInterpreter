@@ -19,10 +19,7 @@ class Scope:
             return compose(*operations)
         return False
     
-    def add_function(self, function) -> None:
-        self.variables[function.name] = function
-    
-    def add_variable(self, name: str, value: Any) -> None:
+    def add(self, name: str, value: Any) -> None:
         self.variables[name] = value
         
     def __repr__(self) -> str:

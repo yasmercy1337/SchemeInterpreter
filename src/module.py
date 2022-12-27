@@ -14,7 +14,7 @@ class Module:
         
         # setting scope
         for function in [Expression(block, Scope(self.scope)) for block in blocks if is_function(block)]:
-            self.scope.add_function(function())
+            self.scope.add(*function())
         self.expressions = [Expression(block, Scope(self.scope)) for block in blocks if not is_function(block)]
         
     def __call__(self) -> str:

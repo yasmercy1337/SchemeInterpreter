@@ -36,17 +36,22 @@ def let_(variables: Expression, operation: Expression) -> Any:
     for variable in variables:
         name, value = group_blocks(strip_parens(variable))
         value = Expression(value, operation.scope)()
-        operation.scope.add_variable(name, value)
+        operation.scope.add(name, value)
     return operation()
     
-def define_(signature: Expression, body: Expression, scope) -> Function:
+def define_(signature: Expression, body: Expression, scope) -> tuple[str, Any]:
     from scope import Scope
     
-    signature = group_blocks(strip_parens(signature.code))
-    name, *params = signature
-    function = Function(name, params, body.code, Scope(scope))
-    scope.add_function(function)
-    return function
+    # function
+    if signature.code[0] == "(" and signature.code[-1] == ")":
+        signature = group_blocks(strip_parens(signature.code))
+        name, *params = signature
+        function = Function(name, params, body.code, Scope(scope))
+        scope.add(name, function)
+        return name, function
+    # assignment
+    name = signature.code.split(" ")[0]
+    return name, body()
 
 @evaluate_args
 def list_(*args: Any) -> ConsList:
