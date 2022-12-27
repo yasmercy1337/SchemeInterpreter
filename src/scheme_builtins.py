@@ -28,8 +28,15 @@ def cond_(*conds: Expression) -> Any:
     raise ValueError
 
 @evaluate_args    
-def display_(arg: Expression) -> None:
-    print(arg())
+def display_(arg: Any) -> None:
+    print(arg, end="")
+
+def newline_() -> None:
+    print()
+    
+@evaluate_args
+def begin_(*args: Any) -> None:
+    return args[-1]
 
 def let_(variables: Expression, operation: Expression) -> Any:
     variables = group_blocks(strip_parens(variables.code))
@@ -102,6 +109,8 @@ operators: dict[str, Callable] = {
     "and": evaluate_args(operator.and_),
     "eq?": evaluate_args(operator.is_),
     "display": display_,
+    "newline": newline_,
+    "begin": begin_,
     
     # special form
     "if": if_,
