@@ -1,7 +1,5 @@
 def strip_parens(code: str) -> str:
-    if code[0] == "(" and code[-1] == ")":
-        return code[1: -1]
-    return code
+    return code[1:-1]
 
 def split_words(code: str, delim: str = " ") -> list[str]:
     return code.split(delim)
@@ -12,7 +10,7 @@ def group_blocks(code: str, delim: str = " ") -> list[str]:
     current = ""
     
     for char in code:
-        count += (char == "(") - (char == ")")      
+        count += (char == "(") - (char == ")") + (char == "[") - (char == "]")     
         if char == delim and count == 0:
             out.append(current)
             current = ""
@@ -33,22 +31,32 @@ def parse_word(code: str) -> str | int | float | bool:
     
     # int or floats
     numeric_types = [int, float]
-    for type in numeric_types:
+    for check_type in numeric_types:
         try:
-            code = type(code)
+            code = check_type(code)
             return code
         except ValueError:
             continue
-        
+    
+    # lists
+    if code[0] == "[" and code[-1] == "]":
+        import conslist
+        arr = [parse_word(word) for word in strip_parens(code).split(" ")]
+        return conslist.ConsList.from_list(arr)
+    
     # booleans
     if code == "#t":
         return True
     elif code == "#f":
         return False
     
+    # None
+    if code == "None":
+        return None
     raise ValueError(f"Unknown object '{code}'")
 
 def parse_whitespace(code: str) -> str:
+    code = clear_comments(code)
     return remove_consecutive_whitespace(code.replace("\n", " ").replace("\t", " "))
 
 def remove_consecutive_whitespace(string: str) -> str:
@@ -59,3 +67,18 @@ def remove_consecutive_whitespace(string: str) -> str:
             out += char
         remove = char == " "
     return out
+
+def clear_line_comment(code: str) -> str:
+    try:
+        return code[:code.index(";")]
+    except ValueError:
+        return code
+        
+def clear_comments(code: str) -> str:
+    return "\n".join([clear_line_comment(line) for line in code.split("\n")]).strip()
+
+def buffer_parens(code: str) -> str:
+    return code.replace("(", " ( ").replace(")", " ) ")
+
+def unbuffer_parens(code: str) -> str:
+    return code.replace(" ( ", "(").replace(" ) ", ")")

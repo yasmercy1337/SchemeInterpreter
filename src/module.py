@@ -24,12 +24,12 @@ class Module:
         from scheme_builtins import operators, variables
         
         scope = Scope(False)
-        scope.functions.update(operators)
         scope.variables.update(variables)
+        scope.variables.update(operators)
         self.scope = scope
         
         define = lambda signature, body: operators["define"](signature, body, self.scope)
-        self.scope.functions["define"] = define
+        self.scope.variables["define"] = define
         
 
 def is_function(expression: Expression) -> bool:

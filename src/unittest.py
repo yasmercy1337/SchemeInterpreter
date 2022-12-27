@@ -39,6 +39,10 @@ def cond_test():
 def let_test():
     code = "(let ((a 10)\n\t (b 20))\n\t(+ a b))"
     assert interpret_expression(code) == 30
+
+def list_test():
+    code = "(caddr (append (list 10 15) (list 8) (list 6 10 14)))"
+    assert interpret_expression(code) == 8
     
 def test_all():
     tests = [
@@ -52,6 +56,7 @@ def test_all():
         fibonacci_test,
         cond_test,
         let_test,
+        list_test
     ]
     
     print(f"Testing {len(tests)} tests...")
@@ -62,9 +67,9 @@ def test_all():
         except AssertionError:
             print(f"Wrong output on {test} :(")
             return
-        # except Exception as e:
-        #     print(f"Failed {test},", e)
-        #     return
+        except Exception as e:
+            print(f"Failed {test},", e)
+            return
     
     print("Passed tests :)")
     

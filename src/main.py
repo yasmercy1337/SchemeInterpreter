@@ -12,7 +12,7 @@ def main():
     path = Path.cwd().parent / "code.txt"
     with open(str(path), "r") as f:
         code = "".join(f.readlines())
-        print(f"Interpreting: \n{code}")
+        # print(f"Interpreting: \n{code}")
         output = interpret_module(code)
         print(output)
 

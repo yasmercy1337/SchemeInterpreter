@@ -12,38 +12,37 @@ class Expression:
         
         self.operator: Callable = None
         self.arguments: list[Expression] = None
-        self.value: Any = None
+        self.value: Any = "UNSET"
     
-    def parse(self) -> Self:
-        expressions = group_blocks(strip_parens(parse_whitespace(self.code)))
+    def parse(self):
+        code = parse_whitespace(self.code)
         self.parsed = True
-        
-        if len(expressions) == 1:
-            if (value := self.scope.get_variable(expressions[0])):
+        if code[0] == "(" and code[-1] == ")": # function call
+            code = strip_parens(code)
+            operator, *arguments = group_blocks(code)
+            self.operator = self.scope.get(operator)
+            if not self.operator:
+                raise NameError(f"'{operator}' is not defined")
+            self.arguments = [Expression(arg, self.scope) for arg in arguments]
+            return
+        try:
+            operand = group_blocks(code)[0]
+            if value := self.scope.get(operand):
                 self.value = value
-                return self
-            try:
-                self.value = parse_word(expressions[0])
-                return self
-            except ValueError:
-                pass
-        
-        self.operator = self.scope.get_function(operator := expressions.pop(0))
-        self.arguments = [Expression(arg, self.scope) for arg in expressions]
-        if not self.operator:
-            raise NameError(f"'{operator}' is not defined")
-        return self
+                return
+            self.value = parse_word(group_blocks(code)[0])
+        except ValueError:
+            raise NameError(f"'{code}' can not be parsed")
             
     def __call__(self) -> Any:
         if not self.parsed:
             self.parse()
-            
-        if self.value is not None:
+        if not self.value == "UNSET":
             return self.value
         return self.operator(*self.arguments)
     
     def __repr__(self) -> str:
-        if self.value is not None:
+        if not self.value == "UNSET":
             return f"value='{self.value}'"
         if self.operator is not None and self.arguments is not None:
             return f"operator='{self.operator}' args={self.arguments}"

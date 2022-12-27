@@ -72,6 +72,10 @@ def car_(arr: ConsList) -> Any:
 def cdr_(arr: ConsList) -> Any:
     return arr.next
 
+@evaluate_args
+def null_(arr: ConsList) -> Any:
+    return arr is None or (arr.head is None and arr.next is None)
+
 operators: dict[str, Callable] = {
     # inconsistency: arithmetic operations can take in multiple in scheme
     "+": evaluate_args(operator.add),
@@ -86,6 +90,7 @@ operators: dict[str, Callable] = {
     "not": evaluate_args(operator.not_),
     "or": evaluate_args(operator.or_),
     "and": evaluate_args(operator.and_),
+    "eq?": evaluate_args(operator.is_),
     
     "if": if_,
     "define": define_,
@@ -99,6 +104,7 @@ operators: dict[str, Callable] = {
     "append": append_,
     "car": car_,
     "cdr": cdr_,
+    "null?": null_,
     
 }
 

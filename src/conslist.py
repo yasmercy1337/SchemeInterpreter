@@ -1,6 +1,8 @@
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import *
+import enum
+
 
 @dataclass
 class ConsList:
@@ -40,7 +42,7 @@ class ConsList:
         return f"{self.head} . {self.next}"
         
     def __repr__(self) -> str:
-        return f"({self.to_string()})"
+        return f"[{self.to_string()}]"
     
     def empty(arr: ConsList) -> bool:
         return arr and arr.head
