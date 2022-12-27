@@ -24,9 +24,21 @@ def function_test():
     code = "(define (add1 n) (+ n 1))\n(add1 2)\n(add1 4)"
     assert interpret_module(code) == "3\n5"
     
+def factorial_test():
+    code = "(define (fact-iter current n)\n\t(if (= n 1)\n\t\tcurrent\n\t\t(fact-iter (* current n) (- n 1))))\n(fact-iter 1 5)"
+    assert interpret_module(code) == "120"
+    
 def fibonacci_test():
     code = "(define (fib n)\n\t(if (<= n 2)\n\t\t1\n\t\t(+ (fib (- n 1)) (fib (- n 2)))))\n(fib 6)\n(fib 20)"
     assert interpret_module(code) == "8\n6765"
+    
+def cond_test():
+    code = "(cond ((> 1 3)\n               1)\n      ((> 2 3)\n       2)\n   ((> 4 3)\n       (+ 4 2))\n     (else\n          4))"
+    assert interpret_expression(code) == 6
+    
+def let_test():
+    code = "(let ((a 10)\n\t (b 20))\n\t(+ a b))"
+    assert interpret_expression(code) == 30
     
 def test_all():
     tests = [
@@ -36,7 +48,10 @@ def test_all():
         if_negative_test,
         if_positive_test,
         function_test,
-        fibonacci_test
+        factorial_test,
+        fibonacci_test,
+        cond_test,
+        let_test,
     ]
     
     print(f"Testing {len(tests)} tests...")
@@ -52,3 +67,6 @@ def test_all():
         #     return
     
     print("Passed tests :)")
+    
+if __name__ == "__main__":
+    test_all()

@@ -2,7 +2,6 @@ from expression import Expression
 from scope import Scope
 from typing import *
 
-
 class Function(Expression):
     
     def __init__(self, name: str, params: list[str], code: str, scope: Scope = None):

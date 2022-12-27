@@ -7,6 +7,7 @@ def test():
         
 def main():   
     # test()
+    # print()
     
     path = Path.cwd().parent / "code.txt"
     with open(str(path), "r") as f:

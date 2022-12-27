@@ -19,8 +19,14 @@ class Expression:
         self.parsed = True
         
         if len(expressions) == 1:
-            self.value = parse_word(expressions[0])
-            return self
+            if (value := self.scope.get_variable(expressions[0])):
+                self.value = value
+                return self
+            try:
+                self.value = parse_word(expressions[0])
+                return self
+            except ValueError:
+                pass
         
         self.operator = self.scope.get_function(operator := expressions.pop(0))
         self.arguments = [Expression(arg, self.scope) for arg in expressions]
