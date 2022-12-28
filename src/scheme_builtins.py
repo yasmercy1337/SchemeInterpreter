@@ -46,7 +46,7 @@ def let_(variables: Expression, operation: Expression) -> Any:
         operation.scope.add(name, value)
     return operation()
     
-def define_(signature: Expression, body: Expression, scope) -> tuple[str, Any]:
+def define_(signature: Expression, body: Expression, scope) -> str:
     from scope import Scope
     
     # function
@@ -55,10 +55,11 @@ def define_(signature: Expression, body: Expression, scope) -> tuple[str, Any]:
         name, *params = signature
         function = Function(name, params, body.code, Scope(scope))
         scope.add(name, function)
-        return name, function
+        return name
     # assignment
     name = signature.code.split(" ")[0]
-    return name, body()
+    scope.add(name, body())
+    return name
 
 @evaluate_args
 def list_(*args: Any) -> ConsList:
